@@ -1,0 +1,24 @@
+{
+    "name": "lodev09/php-models",
+    "description": "A PHP library that allows you to easily create and define your models using PDO.",
+    "homepage": "https://github.com/lodev09/php-models",
+    "license": "MIT",
+    "keywords": [
+        "php", "class", "pdo", "models", "mysql", "mysql-pdo", "pdo-models", "models-php"
+    ],
+    "authors": [
+        {
+            "name": "Jovanni Lo",
+            "email": "lodev09@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4",
+        "lodev09/php-util": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Models\\": "src/"
+        }
+    }
+}
