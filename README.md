@@ -50,9 +50,9 @@ $db = new \Models\DB(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD);
 namespace Models;
 
 class User extends \Models\Model {
-	public function get_name() {
-		return $this->name;
-	}
+    public function get_name() {
+        return $this->name;
+    }
 }
 ```
 3. Register your table to your custom class
@@ -66,8 +66,8 @@ Now, you can directly get the `User` instance from a query. Example:
 $user = \Models\User::query_row("SELECT id, name FROM users WHERE id = 1 AND active = 1");
 // you can call the get_name() method now
 if ($user) {
-	$name = $user->get_name();
-	echo 'His name is '.$name;
+    $name = $user->get_name();
+    echo 'His name is '.$name;
 }
 ```
 
