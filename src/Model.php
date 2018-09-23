@@ -7,11 +7,8 @@
  * - active tinyint(1) default 1
  *
  * System Requirements:
- * - PHP 5.3+
+ * - PHP 5.4+
  * - PDO Extension
- *
- * Required classes
- * - \Common\Util
  */
 
 namespace Models;
