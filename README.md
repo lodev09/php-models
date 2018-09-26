@@ -49,7 +49,7 @@ $db = new \Models\DB(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD);
 ```php
 namespace Models;
 
-class User extends \Models\Model {
+class User extends Model {
     public function get_name() {
         return $this->name;
     }

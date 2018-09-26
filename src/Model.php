@@ -165,7 +165,7 @@ class Model {
 
             switch ($type) {
                 case 'datetime':
-                    $value = (new \Moment\Moment($value))->format(ISO8601);
+                    $value = date(\DateTime::ISO8601, strtotime($value));
                     break;
                 default:
                     settype($value, $type);
@@ -206,9 +206,9 @@ class Model {
     public static function format_dates($fields, $data, $format = 'Y-m-d H:i:s') {
         foreach ($fields as $field) {
             if (is_array($data) && isset($data[$field])) {
-                $data[$field] = $data[$field] ? (new \Moment\Moment($data[$field]))->format($format) : null;
+                $data[$field] = $data[$field] ? date($format, strtotime($data[$field])) : null;
             } else if (is_object($data) && isset($data->{$field})) {
-                $data->{$field} = $data->{$field} ? (new \Moment\Moment($data->{$field}))->format($format) : null;
+                $data->{$field} = $data->{$field} ? date($format, strtotime($data->{$field})) : null;
             }
         }
 
