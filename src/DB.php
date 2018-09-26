@@ -19,7 +19,7 @@
  * the appropriate SQL statement types.
  *
  * System Requirements:
- * - PHP 5
+ * - PHP 5.4+
  * - PDO Extension
  * - Appropriate PDO Driver(s) - PDO_SQLITE, PDO_MYSQL, PDO_PGSQL
  * - Only MySQL, SQLite, and PostgreSQL database types are currently supported.
@@ -163,7 +163,11 @@ class DB extends \PDO {
                 }
                 $sql .= $fields[$f].' = :update_'.$fields[$f];
             }
-            $sql .= " WHERE $where;";
+
+            if ($where) {
+                $sql .= " WHERE $where;";
+            }
+
             $bind = $this->cleanup($bind);
             foreach ($fields as $field) {
                 $bind[":update_$field"] = $info[$field];
@@ -179,7 +183,7 @@ class DB extends \PDO {
     * @param string $sql
     *  Table name or DELETE statement
     *
-    * @param string $where
+    * @param string $info
     *  Where conditions or bind information
     *
     * @param mixed $bind
