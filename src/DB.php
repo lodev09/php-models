@@ -19,7 +19,7 @@
  * the appropriate SQL statement types.
  *
  * System Requirements:
- * - PHP 5.4+
+ * - PHP 5
  * - PDO Extension
  * - Appropriate PDO Driver(s) - PDO_SQLITE, PDO_MYSQL, PDO_PGSQL
  * - Only MySQL, SQLite, and PostgreSQL database types are currently supported.
@@ -110,7 +110,7 @@ class DB extends \PDO {
             return $this->run($sql, $info);
         } else {
             $table = $this->_prefix.$sql;
-            $fields = $this->filter($table, $info);
+            $fields = $this->get_fields($table, array_keys($info));
             $sql = "INSERT INTO $table (`".implode("`, `", $fields)."`) ";
             $sql .= "VALUES (:".implode(", :", $fields).");";
 
@@ -154,7 +154,7 @@ class DB extends \PDO {
             return $this->run($sql_or_table, $info);
         } else {
             $sql_or_table = $this->_prefix . $sql_or_table;
-            $fields = $this->filter($sql_or_table, $info);
+            $fields = $this->get_fields($sql_or_table, array_keys($info));
             $fieldSize = sizeof($fields);
             $sql = "UPDATE $sql_or_table SET ";
             for ($f = 0; $f < $fieldSize; ++$f) {
@@ -426,17 +426,17 @@ class DB extends \PDO {
     }
 
     /**
-    * Filter.
+    * Return table fields.
     *
     * @param string $table
     *  Table name.
     *
-    * @param array $info
-    *  Associated array with fields and their values.
+    * @param array $return_fields
+    * If provided, return valid fields from this array
     *
     * @return array
     */
-    private function filter($table = '', $info = []) {
+    public function get_fields($table = '', $return_fields = []) {
         $table = $this->_prefix . $table;
         $driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
 
@@ -458,7 +458,7 @@ class DB extends \PDO {
                 $fields[] = $record->{$key};
             }
 
-            return array_values(array_intersect($fields, array_keys($info)));
+            return $return_fields ? array_values(array_intersect($fields, $return_fields)) : $fields;
         }
 
         return [];
