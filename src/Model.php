@@ -88,15 +88,6 @@ class Model {
         return self::query_row("SELECT * FROM `$table` WHERE $fields AND active = 1", $bind);
     }
 
-    public static function set_app($app) {
-        if ($app) {
-            self::$app = $app;
-            return true;
-        }
-
-        return self::_error('app is not valid');
-    }
-
     /**
      * Set the DB object to our base model class
      *
@@ -165,7 +156,6 @@ class Model {
 
             switch ($type) {
                 case 'datetime':
-                    $value = date(\DateTime::ISO8601, strtotime($value));
                     break;
                 default:
                     settype($value, $type);
@@ -244,6 +234,33 @@ class Model {
     }
 
     /**
+     * Build filter string
+     *
+     * @param $info
+     * Fields and values
+     *
+     * @param &$binds
+     * Updated binds
+     *
+     * @param $prepend
+     * WHERE or AND
+     *
+     */
+    public static function create_filter($info, &$binds = [], $prepend = 'AND') {
+        $filters = [];
+
+        if (!$info) return '';
+
+        foreach ($info as $field => $value) {
+            $bind_key = str_replace(".", "_", $field);
+            $filters[] = $field." = :".$bind_key;
+            $binds[$bind_key] = $value;
+        }
+
+        return $prepend.' '.implode(' AND ', $filters);
+    }
+
+    /**
      * Inherited method to call DB::update(...). Updates the object with new data
      *
      * @param  mixed $arg1
@@ -312,7 +329,7 @@ class Model {
         return json_encode($this->to_array(), $flags);
     }
 
-    public function to_array() {
+    public function to_array($get_fields = null) {
         $model = self::_get_model_info();
         if (!$model) return false;
 
@@ -321,8 +338,10 @@ class Model {
 
 
         foreach ($properties as $field => $value) {
-            $this->_set_type($field, $value);
-            $result[$field] = $value;
+            if (!$get_fields || ($get_fields && in_array($field, $get_fields))) {
+                $this->_set_type($field, $value);
+                $result[$field] = $value;
+            }
         }
 
         return $result;
