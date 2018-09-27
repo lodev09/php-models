@@ -437,31 +437,13 @@ class DB extends \PDO {
     * @return array
     */
     public function get_fields($table = '', $return_fields = []) {
-        $table = $this->_prefix . $table;
-        $driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
-
-        if ($driver == 'sqlite') {
-            $sql = "PRAGMA table_info('$table');";
-            $key = "name";
-        } elseif ($driver == 'mysql') {
-            $sql = "DESCRIBE `$table`;";
-            $key = "Field";
-        } else {
-            $sql = "SELECT column_name FROM information_schema.columns ";
-            $sql .= "WHERE table_name = '$table';";
-            $key = "column_name";
-        }
-
-        if (false !== ($list = $this->run($sql))) {
-            $fields = [];
-            foreach ($list as $record) {
-                $fields[] = $record->{$key};
-            }
-
+        $info = $this->get_info($table);
+        if ($info) {
+            $fields = array_keys($info);
             return $return_fields ? array_values(array_intersect($fields, $return_fields)) : $fields;
         }
 
-        return [];
+        return false;
     }
 
     /**

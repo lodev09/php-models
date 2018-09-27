@@ -85,7 +85,9 @@ class Model {
             }
         }
 
-        return self::query_row("SELECT * FROM `$table` WHERE $fields AND active = 1", $bind);
+        $active_field = self::get_field('active') ? "AND active = 1" : "";
+
+        return self::query_row("SELECT * FROM `$table` WHERE $fields $active_field", $bind);
     }
 
     /**
@@ -109,11 +111,12 @@ class Model {
      * @return bool
      * Returns true if table exists and successfully registered to the Model class. Otherwise false.
      */
-    public static function register($table) {
+    public static function register($table, $pk = 'id') {
         if ($table_info = self::$db->get_info($table)) {
             self::$_models[self::get_name()] = [
                 'fields' => self::$db->get_info($table),
-                'table' => $table
+                'table' => $table,
+                'pk' => $pk
             ];
 
             return true;
@@ -134,7 +137,7 @@ class Model {
             return self::$_models[$class_name];
         }
 
-        return self::_error(self::get_name().' must be registered with it\'s corresponding table name and database. Use '.self::get_name().'::register($db, $table)');
+        return self::_error(self::get_name().' must be registered with it\'s corresponding table name and database. Use \Models\\'.self::get_name().'::register($db, $table)');
     }
 
     /**
@@ -277,6 +280,7 @@ class Model {
         if (!$model) return false;
 
         $table = $model['table'];
+        $pk = $model['pk'];
         $data = [];
 
         if (isset($arg1) && !isset($arg2)) {
@@ -287,12 +291,42 @@ class Model {
             return false;
         }
 
-        $updated = self::$db->update($table, $data, 'id = :id', [':id' => $this->id]);
+        $updated = self::$db->update($table, $data, "$pk = :pk", [':pk' => $this->{$pk}]);
         if ($updated) {
-            self::$db->query_row("SELECT * FROM `$table` WHERE id = :id", [':id' => $this->id], $this, \PDO::FETCH_INTO);
+            self::$db->query_row("SELECT * FROM `$table` WHERE $pk = :pk", [':pk' => $this->{$pk}], $this, \PDO::FETCH_INTO);
         }
 
         return $updated;
+    }
+
+    /**
+     * Get field info
+     *
+     * @param $field
+     * Field name
+     *
+     * @return bool
+     *
+     */
+    public static function get_field($field) {
+        $model = self::_get_model_info();
+        if (!$model) return false;
+
+        return isset($model['fields'][$field]) ? $model['fields'][$field] : false;
+    }
+
+    /**
+     * Is field a primary key
+     *
+     * @param @field
+     * Field name
+     *
+     * @return bool
+     *
+     */
+    public static function is_pk($field) {
+        $field = self::get_field($field);
+        return $field ? $field['primary'] : false;
     }
 
     /**
@@ -302,8 +336,17 @@ class Model {
      * Returns the number of rows affected from "update"
      */
     public function delete() {
+        $model = self::_get_model_info();
+        if (!$model) return false;
+
+        $table = $model['table'];
+        $pk = $model['pk'];
+
         // we don't delete here :P
-        return $this->update('active', 0);
+        if (self::get_field('active'))
+            return $this->update('active', 0);
+        else
+            return self::$db->delete("DELETE FROM $table WHERE $pk = :pk", [':pk' => $this->{$pk}]);
     }
 
     /**
