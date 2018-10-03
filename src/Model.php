@@ -147,7 +147,7 @@ class Model {
      * the field to map
      *
      */
-    public static function map($field = 'id') {
+    public static function map($field = 'id', $filters = []) {
         $model = self::_get_model_info();
         if (!$model) return false;
         if (!self::get_field($field)) return false;
@@ -155,7 +155,8 @@ class Model {
         $table = $model['table'];
         $active_field = self::get_field('active') ? "active = 1" : "";
 
-        $data = self::query("SELECT $field FROM `$table` WHERE $active_field");
+        $filters_str = self::create_filter($filters, $binds);
+        $data = self::query("SELECT $field FROM `$table` WHERE $active_field $filters_str", $binds);
         if (!$data) return [];
 
         return array_map(function($row) use ($field) {
