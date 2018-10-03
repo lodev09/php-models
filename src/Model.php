@@ -141,6 +141,29 @@ class Model {
     }
 
     /**
+     * Create an array given a field from the data set
+     *
+     * @param $field
+     * the field to map
+     *
+     */
+    public static function map($field = 'id') {
+        $model = self::_get_model_info();
+        if (!$model) return false;
+        if (!self::get_field($field)) return false;
+
+        $table = $model['table'];
+        $active_field = self::get_field('active') ? "active = 1" : "";
+
+        $data = self::query("SELECT $field FROM `$table` WHERE $active_field");
+        if (!$data) return [];
+
+        return array_map(function($row) use ($field) {
+            return is_array($row) ? $row[$field] : $row->{$field};
+        }, $data);
+    }
+
+    /**
      * Sets the type of a property value
      *
      * @param string $field_name
