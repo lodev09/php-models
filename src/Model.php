@@ -90,6 +90,11 @@ class Model {
         return self::query_row("SELECT * FROM `$table` WHERE $fields $active_field", $bind);
     }
 
+    public static function connect($host, $database, $username, $password) {
+        $db = new \Models\DB(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD);
+        self::set_db($db);
+    }
+
     /**
      * Set the DB object to our base model class
      *
@@ -367,10 +372,16 @@ class Model {
         $pk = $model['pk'];
 
         // we don't delete here :P
-        if (self::get_field('active'))
-            return $this->update('active', 0);
-        else
+        if (self::get_field('active')) {
+            $data = ['active' => 0];
+            if (self::get_field('deleted_at')) {
+                $data['deleted_at'] = date('Y-m-d H:i:s');
+            }
+
+            return $this->update($data);
+        } else {
             return self::$db->delete("DELETE FROM $table WHERE $pk = :pk", [':pk' => $this->{$pk}]);
+        }
     }
 
     /**
@@ -402,7 +413,6 @@ class Model {
 
         $result = [];
         $properties = get_object_vars($this);
-
 
         foreach ($properties as $field => $value) {
             if (!$get_fields || ($get_fields && in_array($field, $get_fields))) {
