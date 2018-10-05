@@ -311,13 +311,17 @@ class DB extends \PDO {
     *  Callback function.
     */
     public function on_error($error_callback) {
-        // Variable functions for won't work with language constructs such as echo
-        // and print, so these are replaced with print_r.
-        if (in_array(strtolower($error_callback), ['echo', 'print'])) {
-            $error_callback = 'print_r';
-        }
+        if (is_string($error_callback)) {
+            // Variable functions for won't work with language constructs such as echo
+            // and print, so these are replaced with print_r.
+            if (in_array(strtolower($error_callback), ['echo', 'print'])) {
+                $error_callback = 'print_r';
+            }
 
-        if (function_exists($error_callback)) {
+            if (function_exists($error_callback)) {
+                $this->_error_callback = $error_callback;
+            }
+        } else {
             $this->_error_callback = $error_callback;
         }
     }
