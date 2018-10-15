@@ -83,7 +83,7 @@ class DB extends \PDO {
 
             parent::__construct($dsn, $username, $password, $options);
         } catch (\PDOException $e) {
-            $this->_error = $e->getMessage();
+            throw new \PDOException($e->getMessage(), (int)$e->getCode());
         }
     }
 

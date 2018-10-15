@@ -91,7 +91,7 @@ class Model {
     }
 
     public static function connect($host, $database, $username, $password) {
-        $db = new \Models\DB(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD);
+        $db = new \Models\DB($host, $database, $username, $password);
         self::set_db($db);
     }
 
