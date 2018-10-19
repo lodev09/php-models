@@ -344,7 +344,7 @@ class DB extends \PDO {
             $backtrace = debug_backtrace();
             if (!empty($backtrace)) {
                 foreach ($backtrace as $info) {
-                    if ($info['file'] != __FILE__) {
+                    if (isset($info['file']) && $info['file'] != __FILE__) {
                         $error['Backtrace'] = $info['file'] . ' at line ' . $info['line'];
                     }
                 }
