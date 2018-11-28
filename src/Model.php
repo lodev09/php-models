@@ -117,9 +117,9 @@ class Model {
      * Returns true if table exists and successfully registered to the Model class. Otherwise false.
      */
     public static function register($table, $pk = 'id') {
-        if ($table_info = self::$db->get_info($table)) {
+        if ($table_info = self::$db->get_table_info($table)) {
             self::$_models[self::get_name()] = [
-                'fields' => self::$db->get_info($table),
+                'fields' => self::$db->get_table_info($table),
                 'table' => $table,
                 'pk' => $pk
             ];
@@ -284,9 +284,13 @@ class Model {
         if (!$info) return '';
 
         foreach ($info as $field => $value) {
-            $bind_key = str_replace(".", "_", $field);
-            $filters[] = $field." = :".$bind_key;
-            $binds[$bind_key] = $value;
+            if (is_int($field)) {
+                $filters[] = $value;
+            } else {
+                $bind_key = str_replace(".", "_", $field);
+                $filters[] = $field." = :".$bind_key;
+                $binds[$bind_key] = $value;
+            }
         }
 
         return $prepend.' '.implode(' AND ', $filters);

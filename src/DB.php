@@ -326,6 +326,20 @@ class DB extends \PDO {
         }
     }
 
+    public function get_info() {
+        $info = [];
+
+        if (!empty($this->_sql)) {
+            $info['SQL'] = $this->_sql;
+        }
+
+        if (!empty($this->_bind)) {
+            $info['Bind'] = $this->_bind;
+        }
+
+        return $info;
+    }
+
     /**
     * Debug.
     */
@@ -403,7 +417,7 @@ class DB extends \PDO {
      * @return array
      * Returns array of field information about the table
      */
-    public function get_info($table) {
+    public function get_table_info($table) {
         $table = $this->_prefix . $table;
         $driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
         $fields = [];
@@ -441,7 +455,7 @@ class DB extends \PDO {
     * @return array
     */
     public function get_fields($table = '', $return_fields = []) {
-        $info = $this->get_info($table);
+        $info = $this->get_table_info($table);
         if ($info) {
             $fields = array_keys($info);
             return $return_fields ? array_values(array_intersect($fields, $return_fields)) : $fields;
