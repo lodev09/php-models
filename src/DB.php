@@ -77,7 +77,7 @@ class DB extends \PDO {
         try {
             switch ($driver) {
                 case 'mysql':
-                    $dsn = "mysql:host=$host;port=3306;dbname=$database";
+                    $dsn = "mysql:host=$host;port=3306;dbname=$database;charset=utf8";
                     break;
             }
 
