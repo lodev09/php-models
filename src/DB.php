@@ -161,7 +161,7 @@ class DB extends \PDO {
                 if ($f > 0) {
                     $sql .= ', ';
                 }
-                $sql .= $fields[$f].' = :update_'.$fields[$f];
+                $sql .= '`'.$fields[$f].'` = :update_'.$fields[$f];
             }
 
             if ($where) {
