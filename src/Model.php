@@ -282,6 +282,7 @@ class Model {
         $filters = [];
 
         if (!$info) return '';
+        if (is_string($info)) $info = [$info];
 
         foreach ($info as $field => $value) {
             if (is_int($field)) {
