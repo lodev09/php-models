@@ -357,10 +357,15 @@ class DB extends \PDO {
 
             $backtrace = debug_backtrace();
             if (!empty($backtrace)) {
+                $backtraces = [];
                 foreach ($backtrace as $info) {
                     if (isset($info['file']) && $info['file'] != __FILE__) {
-                        $error['Backtrace'] = $info['file'] . ' at line ' . $info['line'];
+                        $backtraces[] = $info['file'] . ' at line ' . $info['line'];
                     }
+                }
+
+                if ($backtraces) {
+                    $error['Backtrace'] = implode(PHP_EOL, $backtraces);
                 }
             }
 
