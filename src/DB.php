@@ -152,7 +152,7 @@ class DB extends \PDO {
     public function update($sql_or_table = '', $info = [], $where = '', $bind = '') {
         if ($this->sql_is($sql_or_table, 'update')) {
             return $this->run($sql_or_table, $info);
-        } else {
+        } else if (is_array($info)) {
             $sql_or_table = $this->_prefix . $sql_or_table;
             $fields = $this->get_fields($sql_or_table, array_keys($info));
             $fieldSize = sizeof($fields);
@@ -174,6 +174,10 @@ class DB extends \PDO {
             }
 
             return $this->run($sql, $bind);
+        } else {
+            $this->_error = 'Invalid update parameters';
+            $this->debug();
+            return false;
         }
     }
 

@@ -310,6 +310,8 @@ class Model {
      * Returns the number of rows affected
      */
     public function update($arg1, $arg2 = null) {
+        if (!$arg1) return false;
+
         $model = self::_get_model_info();
         if (!$model) return false;
 
@@ -317,12 +319,10 @@ class Model {
         $pk = $model['pk'];
         $data = [];
 
-        if (isset($arg1) && !isset($arg2)) {
-            $data = $arg1;
-        } elseif (isset($arg2)) {
+        if (is_string($arg1)) {
             $data[$arg1] = $arg2;
         } else {
-            return false;
+            $data = $arg1;
         }
 
         $updated = self::$db->update($table, $data, "$pk = :pk", [':pk' => $this->{$pk}]);
