@@ -395,7 +395,8 @@ class DB extends \PDO {
         switch ($driver) {
             case 'mysql':
                 $map = [
-                    'int' => ['tinyint', 'smallint', 'mediumint', 'int', 'bigint'],
+                    'int' => ['smallint', 'mediumint', 'int', 'bigint'],
+                    'bool' => ['tinyint'],
                     'float' => ['float', 'double', 'decimal'],
                     'datetime' => ['datetime', 'date']
                 ];
