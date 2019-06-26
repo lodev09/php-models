@@ -165,7 +165,10 @@ class Model {
         if (!$data) return [];
 
         return array_map(function($row) use ($field) {
-            return is_array($row) ? $row[$field] : $row->{$field};
+            $value = is_array($row) ? $row[$field] : $row->{$field};
+            self::_set_type($field, $value);
+
+            return $value;
         }, $data);
     }
 
@@ -421,7 +424,7 @@ class Model {
 
         foreach ($properties as $field => $value) {
             if (!$get_fields || ($get_fields && in_array($field, $get_fields))) {
-                $this->_set_type($field, $value);
+                self::_set_type($field, $value);
                 $result[$field] = $value;
             }
         }
