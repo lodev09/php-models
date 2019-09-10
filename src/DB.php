@@ -330,15 +330,28 @@ class DB extends \PDO {
         }
     }
 
+    public function get_query() {
+        $info = $this->get_info();
+        $query = $info['statement'];
+
+        if (!empty($info['bind'])) {
+            foreach ($info['bind'] as $field => $value) {
+                $query = str_replace(':'.$field, $this->quote($value), $query);
+            }
+        }
+
+        return $query;
+    }
+
     public function get_info() {
         $info = [];
 
         if (!empty($this->_sql)) {
-            $info['SQL'] = $this->_sql;
+            $info['statement'] = $this->_sql;
         }
 
         if (!empty($this->_bind)) {
-            $info['Bind'] = $this->_bind;
+            $info['bind'] = $this->_bind;
         }
 
         return $info;
