@@ -63,11 +63,19 @@ class DB extends \PDO {
     * @param string $prefix
     *  Prefix for database tables.
     */
-    public function __construct($host = '', $database = '', $username = '', $password = '', $port = 3306, $driver = 'mysql') {
+    public function __construct($host = '', $database = '', $username = '', $password = '', $port = 3306, $driver = 'mysql', $pdo_options = null) {
         $options = [
             \PDO::ATTR_PERSISTENT => true,
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
         ];
+        
+        if ($pdo_options) {
+            if (!is_array($pdo_options)) {
+                throw new \PDOException('PDO options should be an array');
+            }
+
+            $options = array_merge($options, $pdo_options);
+        }
 
         $this->_host = $host;
         $this->_database = $database;
