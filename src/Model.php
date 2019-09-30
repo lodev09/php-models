@@ -109,6 +109,15 @@ class Model {
 
         return self::_error('db is not valid');
     }
+    
+    /**
+     * Get the DB object from the base Model
+     *
+     * @return DB
+     */
+    public static function get_db() {
+        return self::$db;
+    }
 
     /**
      * Register a model for the base class to use proper property data types and some other preps in the future
