@@ -109,7 +109,7 @@ class Model {
 
         return self::_error('db is not valid');
     }
-    
+
     /**
      * Get the DB object from the base Model
      *
@@ -125,10 +125,19 @@ class Model {
      * @return bool
      * Returns true if table exists and successfully registered to the Model class. Otherwise false.
      */
-    public static function register($table, $pk = 'id') {
-        if ($table_info = self::$db->get_table_info($table)) {
+    public static function register($table, $pk = null) {
+        if ($fields = self::$db->get_table_info($table)) {
+            if (!$pk) {
+                foreach ($fields as $field => $info) {
+                    if ($info['primary'] === true) {
+                        $pk = $field;
+                        break;
+                    }
+                }
+            }
+
             self::$_models[self::get_name()] = [
-                'fields' => self::$db->get_table_info($table),
+                'fields' => $fields,
                 'table' => $table,
                 'pk' => $pk
             ];
