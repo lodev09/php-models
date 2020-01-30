@@ -175,7 +175,7 @@ class Model {
         if (!$model) return false;
         if (!self::get_field($field)) return false;
 
-        if ($filters && is_array($filters) && $filters[0] instanceof self) {
+        if ($filters && !empty($filters[0]) && $filters[0] instanceof self) {
             $data = $filters;
         } else {
             $table = $model['table'];
