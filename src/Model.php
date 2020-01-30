@@ -175,11 +175,16 @@ class Model {
         if (!$model) return false;
         if (!self::get_field($field)) return false;
 
-        $table = $model['table'];
-        $active_field = self::get_field('active') ? "active = 1" : "";
+        if ($filters && is_array($filters) && $filters[0] instanceof self) {
+            $data = $filters;
+        } else {
+            $table = $model['table'];
+            $active_field = self::get_field('active') ? "active = 1" : "";
 
-        $filters_str = self::create_filter($filters, $binds);
-        $data = self::query("SELECT $field FROM `$table` WHERE $active_field $filters_str", $binds);
+            $filters_str = self::create_filter($filters, $binds);
+            $data = self::query("SELECT $field FROM `$table` WHERE $active_field $filters_str", $binds);
+        }
+
         if (!$data) return [];
 
         return array_map(function($row) use ($field) {
