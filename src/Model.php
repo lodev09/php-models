@@ -310,7 +310,12 @@ class Model {
                 $filters[] = $value;
             } else {
                 $bind_key = str_replace(".", "_", $field);
-                $filters[] = '`'.$field."` = :".$bind_key;
+
+                $field_info = explode('.', $field);
+                $table = isset($field_info[1]) ? $field_info[0].'.' : '';
+                $field_name = $field_info[1] ?? $field_info[0];
+
+                $filters[] = $table."`$field_name` = :$bind_key";
                 $binds[$bind_key] = $value;
             }
         }
