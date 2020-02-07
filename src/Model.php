@@ -67,27 +67,22 @@ class Model {
         $table = $model['table'];
 
         if (isset($arg2)) {
-            $fields = "`$arg1` = :value";
-            $bind = [':value' => $arg2];
+            $filter_str = "`$arg1` = :value";
+            $binds = [':value' => $arg2];
         } else {
             if (is_array($arg1)) {
-                $filters = [];
-                $bind = [];
-                foreach ($arg1 as $key => $value) {
-                    $filters[] = "`$key` = :$key";
-                    $bind[$key] = $value;
-                }
-
-                $fields = implode(' AND ', $filters);
+                $filter_str = self::create_filter($arg1, $binds, null);
             } else {
-                $fields = "`id` = :value";
-                $bind = [':value' => $arg1];
+                $filter_str = "`id` = :value";
+                $binds = [':value' => $arg1];
             }
         }
 
-        $active_field = self::get_field('active') ? "AND active = 1" : "";
+        if (self::get_field('active')) {
+            $filter_str = 'active = 1 AND '.$filter_str;
+        }
 
-        return self::query_row("SELECT * FROM `$table` WHERE $fields $active_field", $bind);
+        return self::query_row("SELECT * FROM `$table` WHERE $filter_str", $binds);
     }
 
     public static function connect($host, $database, $username, $password) {
