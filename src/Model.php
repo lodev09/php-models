@@ -73,7 +73,8 @@ class Model {
             if (is_array($arg1)) {
                 $filter_str = self::create_filter($arg1, $binds, null);
             } else {
-                $filter_str = "`id` = :value";
+                $pk = $model['pk'];
+                $filter_str = "`$pk` = :value";
                 $binds = [':value' => $arg1];
             }
         }
