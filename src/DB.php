@@ -68,12 +68,9 @@ class DB extends \PDO {
             \PDO::ATTR_PERSISTENT => true,
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
         ];
-        
-        if ($pdo_options) {
-            if (!is_array($pdo_options)) {
-                throw new \PDOException('PDO options should be an array');
-            }
 
+        if ($pdo_options) {
+            if (!is_array($pdo_options)) throw new \PDOException('PDO options should be an array');
             $options = array_merge($options, $pdo_options);
         }
 
@@ -82,20 +79,16 @@ class DB extends \PDO {
         $this->_username = $username;
         $this->_password = $password;
 
-        try {
-            switch ($driver) {
-                case 'mysql':
-                    $dsn = "mysql:host=$host;port=$port;dbname=$database;charset=utf8";
-                    break;
-            }
-
-            parent::__construct($dsn, $username, $password, $options);
-        } catch (\PDOException $e) {
-            throw new \PDOException($e->getMessage(), (int)$e->getCode());
+        switch ($driver) {
+            case 'mysql':
+                $dsn = "mysql:host=$host;port=$port;dbname=$database;charset=utf8";
+                break;
         }
+
+        parent::__construct($dsn, $username, $password, $options);
     }
 
-    public function sql_is($sql, $what) {
+    public function is($sql, $what) {
         $what = is_array($what) ? $what : [$what];
         return preg_match('/^\s*('.implode('|', $what).')\s+/i', $sql) ? true : false;
     }
@@ -114,11 +107,11 @@ class DB extends \PDO {
     *  inserted ID. Otherwise 0.
     */
     public function insert($sql = '', $info = []) {
-        if ($this->sql_is($sql, 'insert')) {
+        if ($this->is($sql, 'insert')) {
             return $this->run($sql, $info);
         } else {
             $table = $this->_prefix.$sql;
-            $fields = $this->get_fields($table, array_keys($info));
+            $fields = $this->getFields($table, array_keys($info));
             $sql = "INSERT INTO $table (`".implode("`, `", $fields)."`) ";
             $sql .= "VALUES (:".implode(", :", $fields).");";
 
@@ -158,11 +151,11 @@ class DB extends \PDO {
     *  affected by the UPDATE statement.
     */
     public function update($sql_or_table = '', $info = [], $where = '', $bind = '') {
-        if ($this->sql_is($sql_or_table, 'update')) {
+        if ($this->is($sql_or_table, 'update')) {
             return $this->run($sql_or_table, $info);
         } else if (is_array($info)) {
             $sql_or_table = $this->_prefix . $sql_or_table;
-            $fields = $this->get_fields($sql_or_table, array_keys($info));
+            $fields = $this->getFields($sql_or_table, array_keys($info));
             $fieldSize = sizeof($fields);
             $sql = "UPDATE $sql_or_table SET ";
             for ($f = 0; $f < $fieldSize; ++$f) {
@@ -206,7 +199,7 @@ class DB extends \PDO {
     *  affected by the DELETE statement.
     */
     public function delete($sql_or_table = '', $info = '', $bind = '') {
-        if ($this->sql_is($sql_or_table, 'delete')) {
+        if ($this->is($sql_or_table, 'delete')) {
             return $this->run($sql_or_table, $info);
         } else {
             $sql = $this->_prefix.$sql_or_table;
@@ -233,7 +226,7 @@ class DB extends \PDO {
      * @return mixed
      * If no SQL errors are procuded, this method will return the object. Otherwise returns false.
      */
-    public function query_row($sql, $bind = null, $args = null, $style = null) {
+    public function queryRow($sql, $bind = null, $args = null, $style = null) {
         $this->_sql = trim($sql);
         $this->_bind = $this->cleanup($bind);
         $this->_error = '';
@@ -289,9 +282,9 @@ class DB extends \PDO {
             $pdostmt = $this->prepare($this->_sql);
 
             if ($pdostmt->execute($this->_bind) !== false) {
-                if ($this->sql_is($this->_sql, ['delete', 'update'])) {
+                if ($this->is($this->_sql, ['delete', 'update'])) {
                     return $pdostmt->rowCount();
-                } elseif ($this->sql_is($this->_sql, 'insert')) {
+                } elseif ($this->is($this->_sql, 'insert')) {
                     return $this->lastInsertId();
                 } else {
                     if (isset($args)) {
@@ -312,7 +305,7 @@ class DB extends \PDO {
 
     /**
     * When a SQL error occurs, this project will send an error message to a
-    * callback function specified through the on_error method.
+    * callback function specified through the onError method.
     * The callback function's name should be supplied as a string without
     * parenthesis.
     *
@@ -322,24 +315,24 @@ class DB extends \PDO {
     * @param $error_callback
     *  Callback function.
     */
-    public function on_error($error_callback) {
-        if (is_string($error_callback)) {
+    public function onError($callback) {
+        if (is_string($callback)) {
             // Variable functions for won't work with language constructs such as echo
             // and print, so these are replaced with print_r.
-            if (in_array(strtolower($error_callback), ['echo', 'print'])) {
-                $error_callback = 'print_r';
+            if (in_array(strtolower($callback), ['echo', 'print'])) {
+                $callback = 'print_r';
             }
 
-            if (function_exists($error_callback)) {
-                $this->_error_callback = $error_callback;
+            if (function_exists($callback)) {
+                $this->_error_callback = $callback;
             }
         } else {
-            $this->_error_callback = $error_callback;
+            $this->_error_callback = $callback;
         }
     }
 
-    public function get_query() {
-        $info = $this->get_info();
+    public function getQuery() {
+        $info = $this->getInfo();
         $query = $info['statement'];
 
         if (!empty($info['bind'])) {
@@ -351,7 +344,7 @@ class DB extends \PDO {
         return $query;
     }
 
-    public function get_info() {
+    public function getInfo() {
         $info = [];
 
         if (!empty($this->_sql)) {
@@ -400,7 +393,7 @@ class DB extends \PDO {
             }
 
             $func = $this->_error_callback;
-            $func($msg);
+            $func(new \PDOException($msg));
         }
     }
 
@@ -410,7 +403,7 @@ class DB extends \PDO {
      * @return string
      * Returns the equevalent php type
     */
-    private function _map_type($driver_type) {
+    private function _mapDataType($driver_type) {
         $map = [];
         $driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
         switch ($driver) {
@@ -448,7 +441,7 @@ class DB extends \PDO {
      * @return array
      * Returns array of field information about the table
      */
-    public function get_table_info($table) {
+    public function getTableInfo($table) {
         $table = $this->_prefix . $table;
         $driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
         $fields = [];
@@ -463,7 +456,7 @@ class DB extends \PDO {
         if ($data = $this->run($sql)) {
             foreach ($data as $column_info) {
                 $field_info = [
-                    'type' => $this->_map_type($column_info->type),
+                    'type' => $this->_mapDataType($column_info->type),
                     'primary' => !empty($column_info->pk)
                 ];
 
@@ -485,8 +478,8 @@ class DB extends \PDO {
     *
     * @return array
     */
-    public function get_fields($table = '', $return_fields = []) {
-        $info = $this->get_table_info($table);
+    public function getFields($table = '', $return_fields = []) {
+        $info = $this->getTableInfo($table);
         if ($info) {
             $fields = array_keys($info);
             return $return_fields ? array_values(array_intersect($fields, $return_fields)) : $fields;

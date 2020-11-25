@@ -24,7 +24,7 @@ $db = new \Models\DB(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD);
 Available **CRUD** methods
 - `$db->insert($sql, $binds)` or `$db->insert($table, $values)`
 - `$db->query($sql, $binds)`
-- `$db->query_row($sql, $binds)` (same with `query` but will return single row)
+- `$db->queryRow($sql, $binds)` (same with `query` but will return single row)
 - `$db->update($sql, $binds)` or `$db->update('table', $values)`
 - `$db->delete($sql, $binds)` or `$db->delete('table', $filters)`
 
@@ -42,7 +42,7 @@ The `\Models\Model` class is a parent class that can be inherited to a **Model**
 1. Initiate the `\Models\DB` instance (see above)
 ```php
 $db = new \Models\DB(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD);
-\Models\Model::set_db($db);
+\Models\Model::setDb($db);
 ```
 
 2. Create your model class. For example, a `User.php` class
@@ -50,7 +50,7 @@ $db = new \Models\DB(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD);
 namespace Models;
 
 class User extends Model {
-    public function get_name() {
+    public function getName() {
         return $this->name;
     }
 }
@@ -63,10 +63,10 @@ class User extends Model {
 
 Now, you can directly get the `User` instance from a query. Example:
 ```php
-$user = \Models\User::query_row("SELECT id, name FROM users WHERE id = 1 AND active = 1");
-// you can call the get_name() method now
+$user = \Models\User::queryRow("SELECT id, name FROM users WHERE id = 1 AND active = 1");
+// you can call the getName() method now
 if ($user) {
-    $name = $user->get_name();
+    $name = $user->getName();
     echo 'His name is '.$name;
 }
 ```

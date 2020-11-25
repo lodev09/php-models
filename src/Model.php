@@ -19,6 +19,7 @@ namespace Models;
 class Model {
     public static $db;
     public static $app;
+    public static $debug = false;
 
     /**
      * Store registered models globaly
@@ -35,8 +36,11 @@ class Model {
      * Returns false by default
      */
     private static function _error($msg) {
-        trigger_error($msg, E_USER_NOTICE);
-        return false;
+        if ($debug) throw new \Exception($msg);
+        else {
+            trigger_error($msg, E_USER_NOTICE);
+            return false;
+        }
     }
 
     /**
@@ -45,7 +49,7 @@ class Model {
      * @return string
      * The name of the child class
      */
-    public static function get_name() {
+    public static function getModelClassName() {
         return get_called_class();
     }
 
@@ -61,7 +65,7 @@ class Model {
      * Returns the object
      */
     public static function instance($arg1, $arg2 = null) {
-        $model = self::_get_model_info();
+        $model = self::_getModelInfo();
         if (!$model) return false;
 
         $table = $model['table'];
@@ -71,7 +75,7 @@ class Model {
             $binds = [':value' => $arg2];
         } else {
             if (is_array($arg1)) {
-                $filter_str = self::create_filter($arg1, $binds, null);
+                $filter_str = self::createFilter($arg1, $binds, null);
             } else {
                 $pk = $model['pk'];
                 $filter_str = "`$pk` = :value";
@@ -79,16 +83,16 @@ class Model {
             }
         }
 
-        if (self::get_field('active')) {
+        if (self::getField('active')) {
             $filter_str = 'active = 1 AND '.$filter_str;
         }
 
-        return self::query_row("SELECT * FROM `$table` WHERE $filter_str", $binds);
+        return self::queryRow("SELECT * FROM `$table` WHERE $filter_str", $binds);
     }
 
     public static function connect($host, $database, $username, $password) {
-        $db = new \Models\DB($host, $database, $username, $password);
-        self::set_db($db);
+        $db = new DB($host, $database, $username, $password);
+        self::setDb($db);
     }
 
     /**
@@ -97,7 +101,7 @@ class Model {
      * @param $db
      * The DB instance
      */
-    public static function set_db($db) {
+    public static function setDb($db) {
         if ($db) {
             self::$db = $db;
             return true;
@@ -111,7 +115,7 @@ class Model {
      *
      * @return DB
      */
-    public static function get_db() {
+    public static function getDb() {
         return self::$db;
     }
 
@@ -122,7 +126,7 @@ class Model {
      * Returns true if table exists and successfully registered to the Model class. Otherwise false.
      */
     public static function register($table, $pk = null) {
-        if ($fields = self::$db->get_table_info($table)) {
+        if ($fields = self::$db->getTableInfo($table)) {
             if (!$pk) {
                 foreach ($fields as $field => $info) {
                     if ($info['primary'] === true) {
@@ -132,7 +136,7 @@ class Model {
                 }
             }
 
-            self::$_models[self::get_name()] = [
+            self::$_models[self::getModelClassName()] = [
                 'fields' => $fields,
                 'table' => $table,
                 'pk' => $pk
@@ -141,7 +145,7 @@ class Model {
             return true;
         }
 
-        return self::_error('table "'.$table.'" for '.self::get_name().' not found in database.');
+        return self::_error('table "'.$table.'" for '.self::getModelClassName().' not found in database.');
     }
 
     /**
@@ -150,13 +154,13 @@ class Model {
      * @return array
      * Returns the array of model information
      */
-    private static function _get_model_info() {
-        $class_name = self::get_name();
+    private static function _getModelInfo() {
+        $class_name = self::getModelClassName();
         if (isset(self::$_models[$class_name])) {
             return self::$_models[$class_name];
         }
 
-        return self::_error(self::get_name().' must be registered with it\'s corresponding table name and database. Use \Models\\'.self::get_name().'::register($db, $table)');
+        return self::_error(self::getModelClassName().' must be registered with it\'s corresponding table name and database. Use \Models\\'.self::getModelClassName().'::register($db, $table)');
     }
 
     /**
@@ -167,17 +171,17 @@ class Model {
      *
      */
     public static function map($field = 'id', $filters = []) {
-        $model = self::_get_model_info();
+        $model = self::_getModelInfo();
         if (!$model) return false;
-        if (!self::get_field($field)) return false;
+        if (!self::getField($field)) return false;
 
         if ($filters && !empty($filters[0]) && $filters[0] instanceof self) {
             $data = $filters;
         } else {
             $table = $model['table'];
-            $active_field = self::get_field('active') ? "active = 1" : "";
+            $active_field = self::getField('active') ? "active = 1" : "";
 
-            $filters_str = self::create_filter($filters, $binds);
+            $filters_str = self::createFilter($filters, $binds);
             $data = self::query("SELECT $field FROM `$table` WHERE $active_field $filters_str", $binds);
         }
 
@@ -185,7 +189,7 @@ class Model {
 
         return array_map(function($row) use ($field) {
             $value = is_array($row) ? $row[$field] : $row->{$field};
-            self::_set_type($field, $value);
+            self::_setDataType($field, $value);
 
             return $value;
         }, $data);
@@ -200,8 +204,8 @@ class Model {
      * @param mixed $value
      * The value to be set
      */
-    private static function _set_type($property_name, &$value) {
-        $model = self::_get_model_info();
+    private static function _setDataType($property_name, &$value) {
+        $model = self::_getModelInfo();
         if (!$model) return false;
 
         if (!is_null($value) && isset($model['fields'][$property_name])) {
@@ -226,7 +230,7 @@ class Model {
      * Returns the newly inserted ID
      */
     public static function insert($data) {
-        $model = self::_get_model_info();
+        $model = self::_getModelInfo();
         if (!$model) return false;
 
         $table = $model['table'];
@@ -247,7 +251,7 @@ class Model {
      * @return mixed
      * returns cleaned data
      */
-    public static function format_dates($fields, $data, $format = 'Y-m-d H:i:s') {
+    public static function formatDates($fields, $data, $format = 'Y-m-d H:i:s') {
         foreach ($fields as $field) {
             if (is_array($data) && isset($data[$field])) {
                 $data[$field] = $data[$field] ? date($format, strtotime($data[$field])) : null;
@@ -270,11 +274,11 @@ class Model {
      *
      */
     public static function query($sql, $bind = null) {
-        return self::$db->query($sql, $bind, self::get_name());
+        return self::$db->query($sql, $bind, self::getModelClassName());
     }
 
     /**
-     * Inherited static method to call DB::query_row(...)
+     * Inherited static method to call DB::queryRow(...)
      *
      * @param $sql
      * sql string
@@ -283,8 +287,8 @@ class Model {
      * Bind parameters as string or array
      *
      */
-    public static function query_row($sql, $bind = null) {
-        return self::$db->query_row($sql, $bind, self::get_name());
+    public static function queryRow($sql, $bind = null) {
+        return self::$db->queryRow($sql, $bind, self::getModelClassName());
     }
 
     /**
@@ -300,7 +304,7 @@ class Model {
      * WHERE or AND
      *
      */
-    public static function create_filter($info, &$binds = [], $prepend = 'AND') {
+    public static function createFilter($info, &$binds = [], $prepend = 'AND') {
         $filters = [];
 
         if (!$info) return '';
@@ -339,7 +343,7 @@ class Model {
     public function update($arg1, $arg2 = null) {
         if (!$arg1) return false;
 
-        $model = self::_get_model_info();
+        $model = self::_getModelInfo();
         if (!$model) return false;
 
         $table = $model['table'];
@@ -354,7 +358,7 @@ class Model {
 
         $updated = self::$db->update($table, $data, "$pk = :pk", [':pk' => $this->{$pk}]);
         if ($updated) {
-            self::$db->query_row("SELECT * FROM `$table` WHERE $pk = :pk", [':pk' => $this->{$pk}], $this, \PDO::FETCH_INTO);
+            self::$db->queryRow("SELECT * FROM `$table` WHERE $pk = :pk", [':pk' => $this->{$pk}], $this, \PDO::FETCH_INTO);
         }
 
         return $updated;
@@ -369,8 +373,8 @@ class Model {
      * @return bool
      *
      */
-    public static function get_field($field) {
-        $model = self::_get_model_info();
+    public static function getField($field) {
+        $model = self::_getModelInfo();
         if (!$model) return false;
 
         return isset($model['fields'][$field]) ? $model['fields'][$field] : false;
@@ -385,8 +389,8 @@ class Model {
      * @return bool
      *
      */
-    public static function is_pk($field) {
-        $field = self::get_field($field);
+    public static function isPK($field) {
+        $field = self::getField($field);
         return $field ? $field['primary'] : false;
     }
 
@@ -397,16 +401,16 @@ class Model {
      * Returns the number of rows affected from "update"
      */
     public function delete() {
-        $model = self::_get_model_info();
+        $model = self::_getModelInfo();
         if (!$model) return false;
 
         $table = $model['table'];
         $pk = $model['pk'];
 
         // we don't delete here :P
-        if (self::get_field('active')) {
+        if (self::getField('active')) {
             $data = ['active' => 0];
-            if (self::get_field('deleted_at')) {
+            if (self::getField('deleted_at')) {
                 $data['deleted_at'] = date('Y-m-d H:i:s');
             }
 
@@ -421,7 +425,7 @@ class Model {
      * This overload is disabled by default as it increases mapping (general output) to around 200%
      *
      * public function __set($name, $value) {
-     *    $this->_set_type($name, $value);
+     *    $this->_setDataType($name, $value);
      *    $this->{$name} = $value;
      *}
      */
@@ -436,11 +440,11 @@ class Model {
      * JSON string
      */
     public function json($flags = JSON_PRETTY_PRINT) {
-        return json_encode($this->to_array(), $flags);
+        return json_encode($this->toArray(), $flags);
     }
 
-    public function to_array($get_fields = null) {
-        $model = self::_get_model_info();
+    public function toArray($get_fields = null) {
+        $model = self::_getModelInfo();
         if (!$model) return false;
 
         $result = [];
@@ -448,7 +452,7 @@ class Model {
 
         foreach ($properties as $field => $value) {
             if (!$get_fields || ($get_fields && in_array($field, $get_fields))) {
-                self::_set_type($field, $value);
+                self::_setDataType($field, $value);
                 $result[$field] = $value;
             }
         }
