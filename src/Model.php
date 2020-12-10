@@ -36,7 +36,7 @@ class Model {
      * Returns false by default
      */
     private static function _error($msg) {
-        if ($debug) throw new \Exception($msg);
+        if (self::$debug) throw new \Exception($msg);
         else {
             trigger_error($msg, E_USER_NOTICE);
             return false;
