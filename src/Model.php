@@ -213,10 +213,8 @@ class Model {
             $type = $field_info['type'];
 
             switch ($type) {
-                case 'datetime':
-                    break;
-                case 'spatial':
-                    settype($value, 'string');
+                case DB::TYPE_DATETIME:
+                case DB::TYPE_SPATIAL:
                     break;
                 default:
                     settype($value, $type);
