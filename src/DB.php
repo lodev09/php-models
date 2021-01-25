@@ -43,6 +43,13 @@ class DB extends \PDO {
     private $_username;
     private $_password;
 
+    const TYPE_STRING = 'string';
+    const TYPE_INT = 'int';
+    const TYPE_BOOL = 'bool';
+    const TYPE_FLOAT = 'float';
+    const TYPE_DATETIME = 'datetime';
+    const TYPE_SPATIAL = 'spatial';
+
     /**
     * Class constructor.
     *
@@ -99,27 +106,46 @@ class DB extends \PDO {
     * @param string $table
     *  Table name or INSERT statement
     *
-    * @param array $info
+    * @param array $data
     *  Associative array with field names and values
     *
     * @return array|bool|int
     *  If no SQL errors are produced, this method will return with the the last
     *  inserted ID. Otherwise 0.
     */
-    public function insert($sql = '', $info = []) {
+    public function insert($sql = '', $data = []) {
         if ($this->is($sql, 'insert')) {
-            return $this->run($sql, $info);
+            return $this->run($sql, $data);
         } else {
             $table = $this->_prefix.$sql;
-            $fields = $this->getFields($table, array_keys($info));
-            $sql = "INSERT INTO $table (`".implode("`, `", $fields)."`) ";
-            $sql .= "VALUES (:".implode(", :", $fields).");";
+            $data_fields = array_keys($data);
+
+            $sql = "INSERT INTO `$table` (`".implode("`, `", $data_fields)."`)";
+
+            $fields = $this->getFields($table);
 
             $bind = [];
-            foreach ($fields as $field) {
-                $bind[":$field"] = $info[$field];
+            $values = [];
+
+            foreach ($data_fields as $field) {
+                if (isset($fields[$field])) {
+                    $type = $fields[$field]['type'];
+
+                    switch ($type) {
+                        // direct value inject
+                        case self::TYPE_SPATIAL:
+                            $values[] = $data[$field];
+                            break;
+
+                        default:
+                            $bind[":$field"] = $data[$field];
+                            $values[] = ":$field";
+                            break;
+                    }
+                }
             }
 
+            $sql .= "VALUES (".implode(", ", $values).")";
             return $this->run($sql, $bind);
         }
     }
@@ -150,29 +176,36 @@ class DB extends \PDO {
     *  If no SQL errors are produced, this method will return the number of rows
     *  affected by the UPDATE statement.
     */
-    public function update($sql_or_table = '', $info = [], $where = '', $bind = '') {
-        if ($this->is($sql_or_table, 'update')) {
-            return $this->run($sql_or_table, $info);
-        } else if (is_array($info)) {
-            $sql_or_table = $this->_prefix . $sql_or_table;
-            $fields = $this->getFields($sql_or_table, array_keys($info));
-            $fieldSize = sizeof($fields);
-            $sql = "UPDATE $sql_or_table SET ";
-            for ($f = 0; $f < $fieldSize; ++$f) {
-                if ($f > 0) {
-                    $sql .= ', ';
-                }
-                $sql .= '`'.$fields[$f].'` = :update_'.$fields[$f];
-            }
+    public function update($sql = '', $data = [], $where = '', $bind = '') {
+        if ($this->is($sql, 'update')) {
+            return $this->run($sql, $data);
+        } else if (is_array($data)) {
+            $table = $this->_prefix.$sql;
+            $data_fields = array_keys($data);
+            $sql = "UPDATE $table";
 
-            if ($where) {
-                $sql .= " WHERE $where;";
-            }
+            $fields = $this->getFields($table, $data_fields);
 
+            $set_fields = [];
             $bind = $this->cleanup($bind);
-            foreach ($fields as $field) {
-                $bind[":update_$field"] = $info[$field];
+            foreach ($data_fields as $field) {
+                if (isset($fields[$field])) {
+                    $type = $fields[$field]['type'];
+                    switch ($type) {
+                        // direct value inject
+                        case self::TYPE_SPATIAL:
+                            $set_fields[] = "`$field` = $data[$field]";
+                            break;
+                        default:
+                            $set_fields[] = "`$field` = :update_$field";
+                            $bind[":update_$field"] = $data[$field];
+                            break;
+                    }
+                }
             }
+
+            $sql .= " SET ".implode(", ", $set_fields);
+            if ($where) $sql .= " WHERE $where";
 
             return $this->run($sql, $bind);
         } else {
@@ -409,17 +442,18 @@ class DB extends \PDO {
         switch ($driver) {
             case 'mysql':
                 $map = [
-                    'int' => ['smallint', 'mediumint', 'int', 'bigint'],
-                    'bool' => ['tinyint'],
-                    'float' => ['float', 'double', 'decimal'],
-                    'datetime' => ['datetime', 'date']
+                    self::TYPE_INT => ['smallint', 'mediumint', 'int', 'bigint'],
+                    self::TYPE_BOOL => ['tinyint'],
+                    self::TYPE_FLOAT => ['float', 'double', 'decimal'],
+                    self::TYPE_DATETIME => ['datetime', 'date'],
+                    self::TYPE_SPATIAL => ['point', 'geometry', 'polygon', 'multipolygon', 'multipoint']
                 ];
 
                 break;
             case 'sqlite':
                 $map = [
-                    'int' => ['integer'],
-                    'float' => ['real']
+                    self::TYPE_INT => ['integer'],
+                    self::TYPE_FLOAT => ['real']
                 ];
         }
 
@@ -430,7 +464,7 @@ class DB extends \PDO {
             }
         }
 
-        return 'string';
+        return self::TYPE_STRING;
     }
 
     /**
@@ -441,7 +475,7 @@ class DB extends \PDO {
      * @return array
      * Returns array of field information about the table
      */
-    public function getTableInfo($table) {
+    public function getFields($table) {
         $table = $this->_prefix . $table;
         $driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
         $fields = [];
@@ -465,27 +499,6 @@ class DB extends \PDO {
         }
 
         return $fields;
-    }
-
-    /**
-    * Return table fields.
-    *
-    * @param string $table
-    *  Table name.
-    *
-    * @param array $return_fields
-    * If provided, return valid fields from this array
-    *
-    * @return array
-    */
-    public function getFields($table = '', $return_fields = []) {
-        $info = $this->getTableInfo($table);
-        if ($info) {
-            $fields = array_keys($info);
-            return $return_fields ? array_values(array_intersect($fields, $return_fields)) : $fields;
-        }
-
-        return false;
     }
 
     /**

@@ -126,7 +126,7 @@ class Model {
      * Returns true if table exists and successfully registered to the Model class. Otherwise false.
      */
     public static function register($table, $pk = null) {
-        if ($fields = self::$db->getTableInfo($table)) {
+        if ($fields = self::$db->getFields($table)) {
             if (!$pk) {
                 foreach ($fields as $field => $info) {
                     if ($info['primary'] === true) {
@@ -214,6 +214,9 @@ class Model {
 
             switch ($type) {
                 case 'datetime':
+                    break;
+                case 'spatial':
+                    settype($value, 'string');
                     break;
                 default:
                     settype($value, $type);
