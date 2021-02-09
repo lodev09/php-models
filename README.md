@@ -63,7 +63,7 @@ class User extends Model {
 
 Now, you can directly get the `User` instance from a query. Example:
 ```php
-$user = \Models\User::queryRow("SELECT id, name FROM users WHERE id = 1 AND active = 1");
+$user = \Models\User::row("SELECT id, name FROM users WHERE id = 1 AND active = 1");
 // you can call the getName() method now
 if ($user) {
     $name = $user->getName();

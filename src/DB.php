@@ -259,7 +259,7 @@ class DB extends \PDO {
      * @return mixed
      * If no SQL errors are procuded, this method will return the object. Otherwise returns false.
      */
-    public function queryRow($sql, $bind = null, $args = null, $style = null) {
+    public function row($sql, $bind = null, $args = null, $style = null) {
         $this->_sql = trim($sql);
         $this->_bind = $this->cleanup($bind);
         $this->_error = '';

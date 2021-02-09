@@ -87,7 +87,7 @@ class Model {
             $filter_str = 'active = 1 AND '.$filter_str;
         }
 
-        return self::queryRow("SELECT * FROM `$table` WHERE $filter_str", $binds);
+        return self::row("SELECT * FROM `$table` WHERE $filter_str", $binds);
     }
 
     public static function connect($host, $database, $username, $password) {
@@ -182,7 +182,7 @@ class Model {
             $active_field = self::getField('active') ? "active = 1" : "";
 
             $filters_str = self::createFilter($filters, $binds);
-            $data = self::query("SELECT $field FROM `$table` WHERE $active_field $filters_str", $binds);
+            $data = self::select("SELECT $field FROM `$table` WHERE $active_field $filters_str", $binds);
         }
 
         if (!$data) return [];
@@ -274,12 +274,12 @@ class Model {
      * Bind parameters as string or array
      *
      */
-    public static function query($sql, $bind = null) {
+    public static function select($sql, $bind = null) {
         return self::$db->select($sql, $bind, self::getModelClassName());
     }
 
     /**
-     * Inherited static method to call DB::queryRow(...)
+     * Inherited static method to call DB::row(...)
      *
      * @param $sql
      * sql string
@@ -288,8 +288,8 @@ class Model {
      * Bind parameters as string or array
      *
      */
-    public static function queryRow($sql, $bind = null) {
-        return self::$db->queryRow($sql, $bind, self::getModelClassName());
+    public static function row($sql, $bind = null) {
+        return self::$db->row($sql, $bind, self::getModelClassName());
     }
 
     /**
@@ -359,7 +359,7 @@ class Model {
 
         $updated = self::$db->update($table, $data, "$pk = :pk", [':pk' => $this->{$pk}]);
         if ($updated) {
-            self::$db->queryRow("SELECT * FROM `$table` WHERE $pk = :pk", [':pk' => $this->{$pk}], $this, \PDO::FETCH_INTO);
+            self::$db->row("SELECT * FROM `$table` WHERE $pk = :pk", [':pk' => $this->{$pk}], $this, \PDO::FETCH_INTO);
         }
 
         return $updated;
