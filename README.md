@@ -23,8 +23,8 @@ $db = new \Models\DB(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD);
 
 Available **CRUD** methods
 - `$db->insert($sql, $binds)` or `$db->insert($table, $values)`
-- `$db->query($sql, $binds)`
-- `$db->queryRow($sql, $binds)` (same with `query` but will return single row)
+- `$db->select($sql, $binds)`
+- `$db->selectRow($sql, $binds)` (same with `select` but will return single row)
 - `$db->update($sql, $binds)` or `$db->update('table', $values)`
 - `$db->delete($sql, $binds)` or `$db->delete('table', $filters)`
 
@@ -32,7 +32,7 @@ The default style is `PDO::FETCH_OBJ`
 
 Example:
 ```php
-$users = $db->query("SELECT * FROM users WHERE active = 1 AND username = :username", array('username' => 'lodev09'));
+$users = $db->select("SELECT * FROM users WHERE active = 1 AND username = :username", array('username' => 'lodev09'));
 var_dump($users);
 ```
 

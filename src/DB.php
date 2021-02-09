@@ -153,7 +153,7 @@ class DB extends \PDO {
     /**
      * Allias of run
     */
-    public function query($sql, $bind = null, $args = null, $style = null) {
+    public function select($sql, $bind = null, $args = null, $style = null) {
         return $this->run($sql, $bind, $args, $style);
     }
 

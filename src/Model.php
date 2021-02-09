@@ -265,7 +265,7 @@ class Model {
     }
 
     /**
-     * Inherited static method to call DB::query(...)
+     * Inherited static method to call DB::select(...)
      *
      * @param $sql
      * sql string
@@ -275,7 +275,7 @@ class Model {
      *
      */
     public static function query($sql, $bind = null) {
-        return self::$db->query($sql, $bind, self::getModelClassName());
+        return self::$db->select($sql, $bind, self::getModelClassName());
     }
 
     /**
