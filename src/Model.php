@@ -218,6 +218,8 @@ class Model {
                     settype($value, $type);
             }
         }
+
+        return $type;
     }
 
     public static function getDataType($field) {
@@ -454,7 +456,7 @@ class Model {
         return json_encode($this->toArray(), $flags);
     }
 
-    public function toArray($get_fields = null) {
+    public function toArray($fields = null, $dates_format = null) {
         $model = self::_getModelInfo();
         if (!$model) return false;
 
@@ -462,8 +464,14 @@ class Model {
         $properties = get_object_vars($this);
 
         foreach ($properties as $field => $value) {
-            if (!$get_fields || ($get_fields && in_array($field, $get_fields))) {
-                self::_setDataType($field, $value);
+            if (!$fields || ($fields && in_array($field, $fields))) {
+                $type = self::_setDataType($field, $value);
+
+                // format dates if specified
+                if ($dates_format && ($type === DB::TYPE_DATETIME || in_array($field, ['created_at', 'updated_at', 'deleted_at']))) {
+                    $value = date($dates_format, strtotime($value));
+                }
+
                 $result[$field] = $value;
             }
         }
