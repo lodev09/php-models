@@ -204,14 +204,12 @@ class Model {
      * @param mixed $value
      * The value to be set
      */
-    private static function _setDataType($property_name, &$value) {
+    private static function _setDataType($field, &$value) {
         $model = self::_getModelInfo();
         if (!$model) return false;
+        if (is_null($value)) return false;
 
-        if (!is_null($value) && isset($model['fields'][$property_name])) {
-            $field_info = $model['fields'][$property_name];
-            $type = $field_info['type'];
-
+        if ($type = self::getDataType($field)) {
             switch ($type) {
                 case DB::TYPE_DATETIME:
                 case DB::TYPE_SPATIAL:
@@ -220,6 +218,18 @@ class Model {
                     settype($value, $type);
             }
         }
+    }
+
+    public static function getDataType($field) {
+        $model = self::_getModelInfo();
+        if (!$model) return false;
+
+        if (isset($model['fields'][$field])) {
+            $field_info = $model['fields'][$field];
+            return $field_info['type'];
+        }
+
+        return false;
     }
 
     /**
