@@ -457,7 +457,7 @@ class Model {
         return json_encode($this->toArray(), $flags);
     }
 
-    public function toArray($fields = null, $datetime_format = null) {
+    public function toArray($fields = null, $datetime_format = \DateTime::ISO8601) {
         $model = self::_getModelInfo();
         if (!$model) return false;
 
