@@ -211,6 +211,7 @@ class Model {
 
         if ($type = self::getDataType($field)) {
             switch ($type) {
+                case DB::TYPE_DATE:
                 case DB::TYPE_DATETIME:
                 case DB::TYPE_SPATIAL:
                     break;

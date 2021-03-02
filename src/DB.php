@@ -48,6 +48,7 @@ class DB extends \PDO {
     const TYPE_BOOL = 'bool';
     const TYPE_FLOAT = 'float';
     const TYPE_DATETIME = 'datetime';
+    const TYPE_DATE = 'date';
     const TYPE_SPATIAL = 'spatial';
 
     /**
@@ -445,7 +446,8 @@ class DB extends \PDO {
                     self::TYPE_INT => ['smallint', 'mediumint', 'int', 'bigint'],
                     self::TYPE_BOOL => ['tinyint'],
                     self::TYPE_FLOAT => ['float', 'double', 'decimal'],
-                    self::TYPE_DATETIME => ['datetime', 'date'],
+                    self::TYPE_DATETIME => ['datetime'],
+                    self::TYPE_DATE => ['date'],
                     self::TYPE_SPATIAL => ['point', 'geometry', 'polygon', 'multipolygon', 'multipoint']
                 ];
 
