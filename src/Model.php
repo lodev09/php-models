@@ -457,7 +457,7 @@ class Model {
         return json_encode($this->toArray(), $flags);
     }
 
-    public function toArray($fields = null, $dates_format = null) {
+    public function toArray($fields = null, $datetime_format = null) {
         $model = self::_getModelInfo();
         if (!$model) return false;
 
@@ -469,8 +469,8 @@ class Model {
                 $type = self::_setDataType($field, $value);
 
                 // format dates if specified
-                if ($dates_format && ($type === DB::TYPE_DATETIME || in_array($field, ['created_at', 'updated_at', 'deleted_at']))) {
-                    $value = date($dates_format, strtotime($value));
+                if ($datetime_format && ($type === DB::TYPE_DATETIME || in_array($field, ['created_at', 'updated_at', 'deleted_at']))) {
+                    $value = date($datetime_format, strtotime($value));
                 }
 
                 $result[$field] = $value;
