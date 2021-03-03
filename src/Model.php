@@ -467,6 +467,9 @@ class Model {
         if (!$fields) $fields = array_keys($properties);
 
         foreach ($fields as $field) {
+
+            $value = null;
+
             if (array_key_exists($field, $properties)) {
                 $value = $properties[$field];
                 $type = self::_setDataType($field, $value);
