@@ -464,8 +464,11 @@ class Model {
         $result = [];
         $properties = get_object_vars($this);
 
-        foreach ($properties as $field => $value) {
-            if (!$fields || ($fields && in_array($field, $fields))) {
+        if (!$fields) $fields = array_keys($properties);
+
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $properties)) {
+                $value = $properties[$field];
                 $type = self::_setDataType($field, $value);
 
                 // format dates if specified
@@ -475,6 +478,8 @@ class Model {
 
                 $result[$field] = $value;
             }
+
+            $result[$field] = $value;
         }
 
         return $result;
