@@ -261,25 +261,15 @@ class DB extends \PDO {
      * If no SQL errors are procuded, this method will return the object. Otherwise returns false.
      */
     public function row($sql, $bind = null, $args = null, $style = null) {
-        $this->_sql = trim($sql);
-        $this->_bind = $this->cleanup($bind);
-        $this->_error = '';
-
-        try {
-            $smt = $this->prepare($this->_sql);
-            if ($smt->execute($this->_bind) !== false) {
-                if (isset($args)) {
-                    $smt->setFetchMode($style ?: \PDO::FETCH_CLASS, $args);
-                } else {
-                    $smt->setFetchMode($style ?: \PDO::FETCH_OBJ);
-                }
-
-                return $smt->fetch();
+        $smt = $this->stmt($sql, $bind, $args, $style);
+        if ($smt !== false) {
+            if (isset($args)) {
+                $smt->setFetchMode($style ?: \PDO::FETCH_CLASS, $args);
+            } else {
+                $smt->setFetchMode($style ?: \PDO::FETCH_OBJ);
             }
-        } catch (\PDOException $e) {
-            $this->_error = $e->getMessage();
-            $this->debug();
-            return false;
+
+            return $smt->fetch();
         }
 
         return false;
