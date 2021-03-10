@@ -266,16 +266,15 @@ class DB extends \PDO {
         $this->_error = '';
 
         try {
-            $pdostmt = $this->prepare($this->_sql);
-
-            if ($pdostmt->execute($this->_bind) !== false) {
+            $smt = $this->prepare($this->_sql);
+            if ($smt->execute($this->_bind) !== false) {
                 if (isset($args)) {
-                    $pdostmt->setFetchMode($style ? : \PDO::FETCH_CLASS, $args);
+                    $smt->setFetchMode($style ?: \PDO::FETCH_CLASS, $args);
                 } else {
-                    $pdostmt->setFetchMode($style ? : \PDO::FETCH_OBJ);
+                    $smt->setFetchMode($style ?: \PDO::FETCH_OBJ);
                 }
 
-                return $pdostmt->fetch();
+                return $smt->fetch();
             }
         } catch (\PDOException $e) {
             $this->_error = $e->getMessage();
@@ -308,26 +307,37 @@ class DB extends \PDO {
     *  and PRAGMA statements. Otherwise false.
     */
     public function run($sql = '', $bind = null, $args = null, $style = null) {
+        $smt = $this->stmt($sql, $bind, $args, $style);
+        if ($smt !== false) {
+            if ($this->is($this->_sql, ['delete', 'update'])) {
+                return $smt->rowCount();
+            } elseif ($this->is($this->_sql, 'insert')) {
+                return $this->lastInsertId();
+            } else {
+                if (isset($args)) {
+                    return $smt->fetchAll($style ?: \PDO::FETCH_CLASS, $args);
+                } else {
+                    return $smt->fetchAll($style ?: \PDO::FETCH_OBJ);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Execute and return the statement
+     */
+    public function stmt($sql = '', $bind = null, $args = null, $style = null) {
         $this->_sql = trim($sql);
         $this->_bind = $this->cleanup($bind);
         $this->_error = '';
 
         try {
-            $pdostmt = $this->prepare($this->_sql);
+            $smt = $this->prepare($this->_sql);
+            $smt->execute($this->_bind);
 
-            if ($pdostmt->execute($this->_bind) !== false) {
-                if ($this->is($this->_sql, ['delete', 'update'])) {
-                    return $pdostmt->rowCount();
-                } elseif ($this->is($this->_sql, 'insert')) {
-                    return $this->lastInsertId();
-                } else {
-                    if (isset($args)) {
-                        return $pdostmt->fetchAll($style ? : \PDO::FETCH_CLASS, $args);
-                    } else {
-                        return $pdostmt->fetchAll($style ? : \PDO::FETCH_OBJ);
-                    }
-                }
-            }
+            return $smt;
         } catch (\PDOException $e) {
             $this->_error = $e->getMessage();
             $this->debug();
