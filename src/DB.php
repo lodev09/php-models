@@ -146,7 +146,7 @@ class DB extends \PDO {
                 }
             }
 
-            $sql .= "VALUES (".implode(", ", $values).")";
+            $sql .= " VALUES (".implode(", ", $values).")";
             return $this->run($sql, $bind);
         }
     }
@@ -485,8 +485,8 @@ class DB extends \PDO {
         if ($driver == 'sqlite') {
             $sql = "PRAGMA table_info('$table');";
         } else {
-            $sql = "SELECT column_name AS name, data_type AS type, IF(column_key = 'PRI', 1, 0) AS pk FROM information_schema.columns ";
-            $sql .= "WHERE table_name = '$table' AND table_schema = '$this->_database';";
+            $sql = "SELECT column_name AS name, data_type AS type, IF(column_key = 'PRI', 1, 0) AS pk FROM information_schema.columns";
+            $sql .= " WHERE table_name = '$table' AND table_schema = '$this->_database';";
         }
 
         if ($data = $this->run($sql)) {
