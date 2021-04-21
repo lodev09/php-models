@@ -418,7 +418,7 @@ class Model {
      * @return int
      * Returns the number of rows affected from "update"
      */
-    public function delete() {
+    public function delete($hard = false) {
         $model = self::_getModelInfo();
         if (!$model) return false;
 
@@ -426,7 +426,7 @@ class Model {
         $pk = $model['pk'];
 
         // we don't delete here :P
-        if (self::getField('active')) {
+        if ($hard === false && self::getField('active')) {
             $data = ['active' => 0];
             if (self::getField('deleted_at')) {
                 $data['deleted_at'] = date('Y-m-d H:i:s');
