@@ -19,10 +19,10 @@
  * the appropriate SQL statement types.
  *
  * System Requirements:
- * - PHP 5
+ * - PHP 7.3
  * - PDO Extension
- * - Appropriate PDO Driver(s) - PDO_SQLITE, PDO_MYSQL, PDO_PGSQL
- * - Only MySQL, SQLite, and PostgreSQL database types are currently supported.
+ * - Appropriate PDO Driver(s) - PDO_SQLITE, PDO_MYSQL
+ * - Only MySQL and SQLite database types are currently supported.
  */
 
 namespace Models;
@@ -40,8 +40,6 @@ class DB extends \PDO {
 
     private $_host;
     private $_database;
-    private $_username;
-    private $_password;
 
     const TYPE_STRING = 'string';
     const TYPE_INT = 'int';
@@ -50,6 +48,9 @@ class DB extends \PDO {
     const TYPE_DATETIME = 'datetime';
     const TYPE_DATE = 'date';
     const TYPE_SPATIAL = 'spatial';
+
+    const DRIVER_MYSQL = 'mysql';
+    const DRIVER_SQLITE = 'sqlite';
 
     /**
     * Class constructor.
@@ -60,7 +61,6 @@ class DB extends \PDO {
     *
     *  - MySQL - http://us3.php.net/manual/en/ref.pdo-mysql.connection.php
     *  - SQLite - http://us3.php.net/manual/en/ref.pdo-sqlite.connection.php
-    *  - PostreSQL - http://us3.php.net/manual/en/ref.pdo-pgsql.connection.php
     *
     * @param string $user
     *  Username for database connection.
@@ -71,7 +71,7 @@ class DB extends \PDO {
     * @param string $prefix
     *  Prefix for database tables.
     */
-    public function __construct($host = '', $database = '', $username = '', $password = '', $port = 3306, $driver = 'mysql', $pdo_options = null) {
+    public function __construct($host = '', $database = '', $username = '', $password = '', $port = 3306, $driver = self::DRIVER_MYSQL, $pdo_options = null) {
         $options = [
             \PDO::ATTR_PERSISTENT => true,
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
@@ -84,12 +84,14 @@ class DB extends \PDO {
 
         $this->_host = $host;
         $this->_database = $database;
-        $this->_username = $username;
-        $this->_password = $password;
 
         switch ($driver) {
-            case 'mysql':
+            case self::DRIVER_MYSQL:
                 $dsn = "mysql:host=$host;port=$port;dbname=$database";
+                break;
+
+            case self::DRIVER_SQLITE:
+                $dsn = "sqlite:$host";
                 break;
         }
 
@@ -441,7 +443,7 @@ class DB extends \PDO {
         $map = [];
         $driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
         switch ($driver) {
-            case 'mysql':
+            case self::DRIVER_MYSQL:
                 $map = [
                     self::TYPE_INT => ['smallint', 'mediumint', 'int', 'bigint'],
                     self::TYPE_BOOL => ['tinyint'],
@@ -452,7 +454,7 @@ class DB extends \PDO {
                 ];
 
                 break;
-            case 'sqlite':
+            case self::DRIVER_SQLITE:
                 $map = [
                     self::TYPE_INT => ['integer'],
                     self::TYPE_FLOAT => ['real']
@@ -482,7 +484,7 @@ class DB extends \PDO {
         $driver = $this->getAttribute(\PDO::ATTR_DRIVER_NAME);
         $fields = [];
 
-        if ($driver == 'sqlite') {
+        if ($driver === self::DRIVER_SQLITE) {
             $sql = "PRAGMA table_info('$table');";
         } else {
             $sql = "SELECT column_name AS name, data_type AS type, IF(column_key = 'PRI', 1, 0) AS pk FROM information_schema.columns";
