@@ -94,8 +94,8 @@ class Model {
         return self::row("SELECT * FROM `$table` WHERE $filter_str", $binds);
     }
 
-    public static function connect($host, $database, $username, $password) {
-        $db = new DB($host, $database, $username, $password);
+    public static function connect($host, $database = null, $username = null, $password = null, $port = 3306, $driver = DB::DRIVER_MYSQL, $options = null) {
+        $db = new DB($host, $database, $username, $password, $port, $driver, $options);
         self::setDb($db);
     }
 
