@@ -457,7 +457,8 @@ class DB extends \PDO {
             case self::DRIVER_SQLITE:
                 $map = [
                     self::TYPE_INT => ['integer'],
-                    self::TYPE_FLOAT => ['real']
+                    self::TYPE_FLOAT => ['real'],
+                    self::TYPE_BOOL => ['boolean']
                 ];
         }
 
