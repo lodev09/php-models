@@ -480,7 +480,7 @@ class Model {
 
                 // format dates if specified
                 if ($datetime_format && ($type === DB::TYPE_DATETIME || in_array($field, ['created_at', 'updated_at', 'deleted_at']))) {
-                    $value = date($datetime_format, strtotime($value));
+                    $value = date($datetime_format, is_int($value) ? $value : strtotime($value));
                 }
 
                 $result[$field] = $value;
