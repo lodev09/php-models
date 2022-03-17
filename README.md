@@ -24,7 +24,7 @@ $db = new \Models\DB(DB_HOST, DB_NAME, DB_USER, DB_PASSWORD);
 Available **CRUD** methods
 - `$db->insert($sql, $binds)` or `$db->insert($table, $values)`
 - `$db->select($sql, $binds)`
-- `$db->selectRow($sql, $binds)` (same with `select` but will return single row)
+- `$db->row($sql, $binds)` (same with `select` but will return single row)
 - `$db->update($sql, $binds)` or `$db->update('table', $values)`
 - `$db->delete($sql, $binds)` or `$db->delete('table', $filters)`
 
