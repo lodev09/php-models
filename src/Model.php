@@ -70,14 +70,12 @@ class Model {
 
         $table = $model['table'];
 
-        if ($arg1 instanceof self) {
-            return $arg1;
-        }
-
         if (isset($arg2)) {
+            if ($arg2 instanceof self) return $arg2;
             $filter_str = "`$arg1` = :value";
             $binds = [':value' => $arg2];
         } else {
+            if ($arg1 instanceof self) return $arg1;
             if (is_array($arg1)) {
                 $filter_str = self::createFilter($arg1, $binds, null);
             } else {
